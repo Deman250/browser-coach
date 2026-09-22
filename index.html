@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>browser-coach</title>
+<style>
+  :root {
+    --bg: #14171B;
+    --panel: #1B1F24;
+    --border: #2A2F36;
+    --text: #E8E6E1;
+    --muted: #8A9199;
+    --accent: #E8A33D;
+    --hit: #5A9B6E;
+    --miss: #C1544A;
+    --mono: 'SFMono-Regular', 'JetBrains Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header .tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  header h1 {
+    margin: 6px 0 4px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--bg);
+    padding: 28px 32px;
+  }
+
+  .field {
+    margin-bottom: 22px;
+  }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .field label span.val {
+    font-family: var(--mono);
+    color: var(--text);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 4px;
+  }
+
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  button#runBtn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: var(--accent);
+    color: #1A1400;
+    border: none;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  button#runBtn:active {
+    transform: translateY(1px);
+  }
+
+  .log {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-y: auto;
+    max-height: calc(100vh - 140px);
+  }
+
+  .log .empty {
+    color: var(--muted);
+  }
+
+  .entry {
+    border-left: 3px solid var(--border);
+    padding: 4px 0 14px 14px;
+    margin-bottom: 14px;
+  }
+
+  .entry.hit { border-left-color: var(--hit); }
+  .entry.miss { border-left-color: var(--miss); }
+
+  .entry .meta {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .entry .verdict {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .entry.hit .verdict { color: var(--hit); }
+  .entry.miss .verdict { color: var(--miss); }
+
+  .entry .msg {
+    color: var(--text);
+    white-space: pre-wrap;
+    margin-top: 6px;
+  }
+
+  footer {
+    padding: 14px 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">SMP // COACHING LAYER</div>
+  <h1>browser-coach</h1>
+  <p>Enter today's numbers. The coach doesn't do encouragement for its own sake — it tells you what moved the needle and what didn't.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="field">
+      <label>Sleep (hours) <span class="val" id="sleepVal">7.0</span></label>
+      <input type="range" id="sleep" min="3" max="10" step="0.5" value="7">
+    </div>
+
+    <div class="field">
+      <label>Water (glasses) <span class="val" id="waterVal">8</span></label>
+      <input type="range" id="water" min="0" max="14" step="1" value="8">
+    </div>
+
+    <div class="field">
+      <label>Steps</label>
+      <input type="number" id="steps" value="9000" step="500" min="0">
+    </div>
+
+    <div class="field">
+      <label>Bench (kg)</label>
+      <input type="number" id="bench" value="80" step="0.5" min="0">
+    </div>
+
+    <div class="field checkbox-row">
+      <input type="checkbox" id="coldShower">
+      <label for="coldShower" style="margin:0; color: var(--text);">Cold shower today</label>
+    </div>
+
+    <button id="runBtn">Get coaching</button>
+  </div>
+
+  <div class="panel">
+    <div class="log" id="log">
+      <div class="empty">No entries yet. Log today's numbers to get your first read.</div>
+    </div>
+  </div>
+</main>
+
+<footer>local &middot; template-based &middot; no data leaves this browser</footer>
+
+<script>
+  const sleepInput = document.getElementById('sleep');
+  const waterInput = document.getElementById('water');
+  const sleepVal = document.getElementById('sleepVal');
+  const waterVal = document.getElementById('waterVal');
+  const log = document.getElementById('log');
+  const runBtn = document.getElementById('runBtn');
+
+  sleepInput.addEventListener('input', () => sleepVal.textContent = parseFloat(sleepInput.value).toFixed(1));
+  waterInput.addEventListener('input', () => waterVal.textContent = waterInput.value);
+
+  // Goal thresholds — the bar for a HIT day. Tune these to your own targets.
+  const GOALS = { sleep: 7.5, water: 8, steps: 9000 };
+
+  // Coaching lines, keyed by which factor(s) fell short. Pick a random line
+  // from the matching list so the coach doesn't repeat itself every day.
+  const TEMPLATES = {
+    hit: [
+      "That's a HIT. {sleep}h sleep and {water} glasses of water — that's the formula. Keep the routine, don't get clever with it.",
+      "HIT. Nothing to fix here. {steps} steps on {sleep}h sleep is what consistency looks like. Repeat it tomorrow.",
+      "HIT. You gave your body what it needed and it showed up for you. Don't reward this with a bad night's sleep."
+    ],
+    missSleep: [
+      "MISS. {sleep}h sleep is the ceiling on everything else today — no amount of water fixes that. Lights out earlier tonight.",
+      "MISS. You logged {steps} steps on {sleep}h of sleep. That's borrowed energy. It comes due tomorrow."
+    ],
+    missWater: [
+      "MISS. {water} glasses isn't enough fuel for {steps} steps. Water is the cheapest fix on this whole list — use it.",
+      "MISS. Sleep was fine, water wasn't. Fix the easy variable first."
+    ],
+    missBoth: [
+      "MISS. {sleep}h sleep and {water} glasses of water — both under target. Pick one to fix tonight, don't try to fix both at once.",
+      "MISS. This is a recovery problem, not a discipline problem. Sleep and water first, steps second."
+    ]
+  };
+
+  function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function fill(template, data) {
+    return template.replace(/\{(\w+)\}/g, (_, key) => data[key]);
+  }
+
+  function coach(data) {
+    const sleepOk = data.sleep >= GOALS.sleep;
+    const waterOk = data.water >= GOALS.water;
+    const hit = sleepOk && waterOk && data.steps >= GOALS.steps;
+
+    let pool;
+    if (hit) pool = TEMPLATES.hit;
+    else if (!sleepOk && !waterOk) pool = TEMPLATES.missBoth;
+    else if (!sleepOk) pool = TEMPLATES.missSleep;
+    else pool = TEMPLATES.missWater;
+
+    return { hit, message: fill(pick(pool), data) };
+  }
+
+  function addEntry(data, result) {
+    if (log.querySelector('.empty')) log.innerHTML = '';
+
+    const entry = document.createElement('div');
+    entry.className = 'entry ' + (result.hit ? 'hit' : 'miss');
+
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    entry.innerHTML = `
+      <div class="meta">${time} &middot; sleep ${data.sleep}h &middot; water ${data.water} &middot; steps ${data.steps} &middot; bench ${data.bench}kg${data.coldShower ? ' &middot; cold shower' : ''}</div>
+      <div class="verdict">${result.hit ? 'HIT' : 'MISS'}</div>
+      <div class="msg">${result.message}</div>
+    `;
+    log.prepend(entry);
+  }
+
+  runBtn.addEventListener('click', () => {
+    const data = {
+      sleep: parseFloat(sleepInput.value),
+      water: parseInt(waterInput.value, 10),
+      steps: parseInt(document.getElementById('steps').value, 10) || 0,
+      bench: parseFloat(document.getElementById('bench').value) || 0,
+      coldShower: document.getElementById('coldShower').checked
+    };
+    const result = coach(data);
+    addEntry(data, result);
+  });
+</script>
+
+</body>
+</html>
